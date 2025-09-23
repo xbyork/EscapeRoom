@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cyber Vault Escape — Middle School (Phishing & Passwords)</title>
+<style>
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0b1220;color:#e9f2ff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .container{width:min(920px,100%);}
+  .card{background:#111a2b;border:1px solid #1e2a44;box-shadow:0 10px 30px rgba(0,0,0,.35);border-radius:16px;padding:24px;}
+  h1{margin:0 0 12px 0;font-size:clamp(24px,3.4vw,36px);}
+  .subtitle{color:#8aa0b3;margin-bottom:18px;}
+  .stage-badge{display:inline-block;background:#0f2038;border:1px solid #1e3558;color:#cfe7ff;padding:6px 10px;border-radius:999px;font-size:12px;margin-bottom:8px;}
+  .question{font-weight:600;margin:10px 0 8px 0;}
+  .choices{display:flex;flex-direction:column;gap:8px;margin:12px 0;}
+  .choice{background:#0f1a2d;border:1px solid #1f2e4a;border-radius:10px;padding:10px;cursor:pointer;}
+  .choice input{margin-right:8px;}
+  .short-input{width:100%;background:#0f1a2d;border:1px solid #2a3b5d;border-radius:10px;padding:10px;color:#e5f2ff;}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+  button{background:#123a58;border:1px solid #1f5d80;color:#e8f7ff;padding:10px 14px;border-radius:10px;cursor:pointer;}
+  button:hover{filter:brightness(1.1)}
+  .hint{background:#11223a;border:1px solid #1e3d61;color:#d8ecff;border-radius:10px;padding:10px;margin-top:10px;font-size:14px;}
+  .feedback{margin-top:12px;padding:12px;border-radius:10px;font-weight:600;}
+  .good{background:rgba(35,209,139,.12);border:1px solid #23d18b;color:#d2ffea;}
+  .bad{background:rgba(255,107,107,.12);border:1px solid #ff6b6b;color:#ffdede;}
+  .explain{margin-top:8px;color:#d6e8ff;font-weight:500;}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:#c2d7ef;font-size:14px;}
+  .codebox{font-family:monospace;background:#0f2033;border:1px solid #2a4d72;border-radius:8px;padding:4px 6px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Cyber Vault Escape</h1>
+    <div class="subtitle">Grade band: <b>Middle School</b> • Topics: <b>Phishing</b>, <b>Passwords</b></div>
+    <p id="story"></p>
+    <div id="game"></div>
+    <div class="statusbar">
+      <div id="stageTag"></div>
+      <div id="scoreTag"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const plan = {
+  narrative: "You're in the school library after hours. The server room door locked behind you! A glowing keypad says: “Prove you know how to stay safe online.” Solve the puzzles to unlock three locks and escape before the alarm!",
+  objectives: [
+    {stage:1, objective:"Spot a phishing message and choose a safe action."},
+    {stage:2, objective:"Recognize strong vs. weak passwords."},
+    {stage:3, objective:"Apply a strong-password building rule."}
+  ]
+};
+
+const puzzles = [
+  {
+    stage:1,type:"MCQ",topic:"phishing",
+    question:"Your “school tech” email says: “Claim your free iPad now! Reply with your student ID in the next 5 minutes.” The sender is school-support99@hotmail.com. What should you do?",
+    choices:["Click the link fast","Reply with your student ID","Forward it","Delete it and/or report it"],
+    answer:3,
+    explanation:"Identify suspicious emails: odd sender, urgency, prize lure. Safe move: delete/report.",
+    hints:["Look at the sender.","Urgent time pressure is a red flag.","Unknown prize + non-school address = phishing."]
+  },
+  {
+    stage:2,type:"MCQ",topic:"passwords",
+    question:"Which is the strongest password for your school email?",
+    choices:["Panthers2025","P@nth3rs2025!","password123","cardinal"],
+    answer:1,
+    explanation:"Strong passwords mix upper/lowercase, numbers, symbols, avoid common words.",
+    hints:["Avoid common words.","Longer with mixed characters.","Symbols + numbers + case changes = stronger."]
+  },
+  {
+    stage:3,type:"SHORT",topic:"passwords",
+    question:"Create a strong passphrase with 3 random words + a number + a symbol (example: word1-word2-word3#7).",
+    answerPattern:/^(?=.*[0-9])(?=.*[^A-Za-z0-9]).*(?:[A-Za-z]+.*){3,}/i,
+    explanation:"Using a long passphrase with mixed characters strengthens resistance to guessing.",
+    hints:["Think: three unrelated words.","Add at least one number.","Add at least one symbol."]
+  }
+];
+
+let score=0,idx=0,hintUsed=0;const maxHint=3;
+const storyEl=document.getElementById("story"),gameEl=document.getElementById("game"),stageTag=document.getElementById("stageTag"),scoreTag=document.getElementById("scoreTag");
+
+function renderIntro(){storyEl.textContent=plan.narrative;}
+function renderStage(){if(idx>=puzzles.length){renderWin();return;}const p=puzzles[idx];hintUsed=0;
+stageTag.innerHTML=`<span class="stage-badge">Stage ${idx+1}/${puzzles.length} — ${p.topic.toUpperCase()}</span>`;scoreTag.textContent=`Score: ${score}`;
+let html=`<div class="question">${p.question}</div>`;
+if(p.type==="MCQ"){html+=`<div class="choices">`+p.choices.map((c,i)=>`<label class="choice"><input type="radio" name="mcq" value="${i}"> ${c}</label>`).join("")+`</div>`;}
+else if(p.type==="SHORT"){html+=`<input class="short-input" id="shortAns" placeholder="Type your answer..." />`;}
+html+=`<div class="controls">
+<button id="submitBtn">SUBMIT</button><button id="hintBtn">HINT</button><button id="skipBtn">SKIP</button><button id="scoreBtn">SCORE</button>
+</div><div id="hintBox"></div><div id="feedback"></div>`;gameEl.innerHTML=html;
+document.getElementById("submitBtn").onclick=onSubmit;document.getElementById("hintBtn").onclick=onHint;document.getElementById("skipBtn").onclick=onSkip;document.getElementById("scoreBtn").onclick=()=>alert(`Current Score: ${score}`);}
+function onSubmit(){const p=puzzles[idx];let correct=false;if(p.type==="MCQ"){const chosen=document.querySelector('input[name="mcq"]:checked');if(!chosen){toast("Select an option first.");return;}correct=(Number(chosen.value)===p.answer);}else if(p.type==="SHORT"){const val=(document.getElementById("shortAns").value||"").trim();if(!val){toast("Type an answer first.");return;}correct=p.answerPattern.test(val);}const feedback=document.getElementById("feedback");if(correct){score+=(3-hintUsed);feedback.className="feedback good";feedback.innerHTML="<b>Correct!</b> The lock clicks open.<div class='explain'>"+p.explanation+"</div>";setTimeout(()=>{idx++;renderStage();},1200);}else{feedback.className="feedback bad";feedback.innerHTML="<b>Incorrect!</b> Keypad flashes red.<div class='explain'>Try a hint.</div>";}scoreTag.textContent=`Score: ${score}`;}
+function onHint(){const p=puzzles[idx],hintBox=document.getElementById("hintBox");if(hintUsed>=maxHint){hintBox.innerHTML="<div class='hint'>No more hints.</div>";return;}const text=p.hints[hintUsed]||"No hint.";hintUsed++;hintBox.innerHTML=`<div class="hint"><b>Hint ${hintUsed}/${maxHint}:</b> ${text}</div>`;}
+function onSkip(){document.getElementById("feedback").className="feedback bad";document.getElementById("feedback").innerHTML="<b>Skipped.</b> No points.";setTimeout(()=>{idx++;renderStage();},800);}
+function toast(msg){const f=document.getElementById("feedback");f.className="feedback bad";f.innerHTML=msg;}
+function renderWin(){gameEl.innerHTML=`<h2>🎉 You Escaped!</h2><div class="good feedback"><b>Correct!</b> Final door opens.</div><p class='explain'>Great work applying safe choices for phishing and strong passwords.</p><p><b>Final Score:</b> <span class='codebox'>${score}</span></p>`;stageTag.innerHTML="<span class='stage-badge'>Complete</span>";scoreTag.textContent=`Score: ${score}`;}
+renderIntro();renderStage();
+</script>
+</body>
+</html>
