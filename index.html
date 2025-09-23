@@ -29,74 +29,7 @@
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="card">
-    <h1>Cyber Vault Escape</h1>
-    <div class="subtitle">Grade band: <b>Middle School</b> • Topics: <b>Phishing</b>, <b>Passwords</b></div>
-    <p id="story"></p>
-    <div id="game"></div>
-    <div class="statusbar">
-      <div id="stageTag"></div>
-      <div id="scoreTag"></div>
-    </div>
-  </div>
-</div>
+Welcome!
 
-<script>
-const plan = {
-  narrative: "You're in the school library after hours. The server room door locked behind you! A glowing keypad says: “Prove you know how to stay safe online.” Solve the puzzles to unlock three locks and escape before the alarm!",
-  objectives: [
-    {stage:1, objective:"Spot a phishing message and choose a safe action."},
-    {stage:2, objective:"Recognize strong vs. weak passwords."},
-    {stage:3, objective:"Apply a strong-password building rule."}
-  ]
-};
-
-const puzzles = [
-  {
-    stage:1,type:"MCQ",topic:"phishing",
-    question:"Your “school tech” email says: “Claim your free iPad now! Reply with your student ID in the next 5 minutes.” The sender is school-support99@hotmail.com. What should you do?",
-    choices:["Click the link fast","Reply with your student ID","Forward it","Delete it and/or report it"],
-    answer:3,
-    explanation:"Identify suspicious emails: odd sender, urgency, prize lure. Safe move: delete/report.",
-    hints:["Look at the sender.","Urgent time pressure is a red flag.","Unknown prize + non-school address = phishing."]
-  },
-  {
-    stage:2,type:"MCQ",topic:"passwords",
-    question:"Which is the strongest password for your school email?",
-    choices:["Panthers2025","P@nth3rs2025!","password123","cardinal"],
-    answer:1,
-    explanation:"Strong passwords mix upper/lowercase, numbers, symbols, avoid common words.",
-    hints:["Avoid common words.","Longer with mixed characters.","Symbols + numbers + case changes = stronger."]
-  },
-  {
-    stage:3,type:"SHORT",topic:"passwords",
-    question:"Create a strong passphrase with 3 random words + a number + a symbol (example: word1-word2-word3#7).",
-    answerPattern:/^(?=.*[0-9])(?=.*[^A-Za-z0-9]).*(?:[A-Za-z]+.*){3,}/i,
-    explanation:"Using a long passphrase with mixed characters strengthens resistance to guessing.",
-    hints:["Think: three unrelated words.","Add at least one number.","Add at least one symbol."]
-  }
-];
-
-let score=0,idx=0,hintUsed=0;const maxHint=3;
-const storyEl=document.getElementById("story"),gameEl=document.getElementById("game"),stageTag=document.getElementById("stageTag"),scoreTag=document.getElementById("scoreTag");
-
-function renderIntro(){storyEl.textContent=plan.narrative;}
-function renderStage(){if(idx>=puzzles.length){renderWin();return;}const p=puzzles[idx];hintUsed=0;
-stageTag.innerHTML=`<span class="stage-badge">Stage ${idx+1}/${puzzles.length} — ${p.topic.toUpperCase()}</span>`;scoreTag.textContent=`Score: ${score}`;
-let html=`<div class="question">${p.question}</div>`;
-if(p.type==="MCQ"){html+=`<div class="choices">`+p.choices.map((c,i)=>`<label class="choice"><input type="radio" name="mcq" value="${i}"> ${c}</label>`).join("")+`</div>`;}
-else if(p.type==="SHORT"){html+=`<input class="short-input" id="shortAns" placeholder="Type your answer..." />`;}
-html+=`<div class="controls">
-<button id="submitBtn">SUBMIT</button><button id="hintBtn">HINT</button><button id="skipBtn">SKIP</button><button id="scoreBtn">SCORE</button>
-</div><div id="hintBox"></div><div id="feedback"></div>`;gameEl.innerHTML=html;
-document.getElementById("submitBtn").onclick=onSubmit;document.getElementById("hintBtn").onclick=onHint;document.getElementById("skipBtn").onclick=onSkip;document.getElementById("scoreBtn").onclick=()=>alert(`Current Score: ${score}`);}
-function onSubmit(){const p=puzzles[idx];let correct=false;if(p.type==="MCQ"){const chosen=document.querySelector('input[name="mcq"]:checked');if(!chosen){toast("Select an option first.");return;}correct=(Number(chosen.value)===p.answer);}else if(p.type==="SHORT"){const val=(document.getElementById("shortAns").value||"").trim();if(!val){toast("Type an answer first.");return;}correct=p.answerPattern.test(val);}const feedback=document.getElementById("feedback");if(correct){score+=(3-hintUsed);feedback.className="feedback good";feedback.innerHTML="<b>Correct!</b> The lock clicks open.<div class='explain'>"+p.explanation+"</div>";setTimeout(()=>{idx++;renderStage();},1200);}else{feedback.className="feedback bad";feedback.innerHTML="<b>Incorrect!</b> Keypad flashes red.<div class='explain'>Try a hint.</div>";}scoreTag.textContent=`Score: ${score}`;}
-function onHint(){const p=puzzles[idx],hintBox=document.getElementById("hintBox");if(hintUsed>=maxHint){hintBox.innerHTML="<div class='hint'>No more hints.</div>";return;}const text=p.hints[hintUsed]||"No hint.";hintUsed++;hintBox.innerHTML=`<div class="hint"><b>Hint ${hintUsed}/${maxHint}:</b> ${text}</div>`;}
-function onSkip(){document.getElementById("feedback").className="feedback bad";document.getElementById("feedback").innerHTML="<b>Skipped.</b> No points.";setTimeout(()=>{idx++;renderStage();},800);}
-function toast(msg){const f=document.getElementById("feedback");f.className="feedback bad";f.innerHTML=msg;}
-function renderWin(){gameEl.innerHTML=`<h2>🎉 You Escaped!</h2><div class="good feedback"><b>Correct!</b> Final door opens.</div><p class='explain'>Great work applying safe choices for phishing and strong passwords.</p><p><b>Final Score:</b> <span class='codebox'>${score}</span></p>`;stageTag.innerHTML="<span class='stage-badge'>Complete</span>";scoreTag.textContent=`Score: ${score}`;}
-renderIntro();renderStage();
-</script>
 </body>
 </html>
