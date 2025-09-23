@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cyber Vault Escape — High School (Phishing & Passwords)</title>
+<style>
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0b1220;color:#e9f2ff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .container{width:min(960px,100%);}
+  .card{background:#111a2b;border:1px solid #1e2a44;box-shadow:0 10px 30px rgba(0,0,0,.35);border-radius:16px;padding:24px;}
+  h1{margin:0 0 12px 0;font-size:clamp(24px,3.4vw,36px);}
+  .subtitle{color:#8aa0b3;margin-bottom:18px;}
+  .stage-badge{display:inline-block;background:#0f2038;border:1px solid #1e3558;color:#cfe7ff;padding:6px 10px;border-radius:999px;font-size:12px;margin-bottom:8px;}
+  .question{font-weight:700;margin:10px 0 8px 0;}
+  .choices{display:flex;flex-direction:column;gap:8px;margin:12px 0;}
+  .choice{background:#0f1a2d;border:1px solid #1f2e4a;border-radius:10px;padding:10px;cursor:pointer;}
+  .choice input{margin-right:8px;}
+  .short-input{width:100%;background:#0f1a2d;border:1px solid #2a3b5d;border-radius:10px;padding:10px;color:#e5f2ff;}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+  button{background:#123a58;border:1px solid #1f5d80;color:#e8f7ff;padding:10px 14px;border-radius:10px;cursor:pointer;}
+  button:hover{filter:brightness(1.1)}
+  .hint{background:#11223a;border:1px solid #1e3d61;color:#d8ecff;border-radius:10px;padding:10px;margin-top:10px;font-size:14px;}
+  .feedback{margin-top:12px;padding:12px;border-radius:10px;font-weight:700;}
+  .good{background:rgba(35,209,139,.12);border:1px solid #23d18b;color:#d2ffea;}
+  .bad{background:rgba(255,107,107,.12);border:1px solid #ff6b6b;color:#ffdede;}
+  .explain{margin-top:8px;color:#d6e8ff;font-weight:500;}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:#c2d7ef;font-size:14px;}
+  .codebox{font-family:monospace;background:#0f2033;border:1px solid #2a4d72;border-radius:8px;padding:4px 6px;}
+  .match-grid{display:grid;gap:10px;grid-template-columns:1fr;}
+  @media (min-width: 720px){ .match-grid{grid-template-columns:1fr 1fr;} }
+  .drag-item,.drop-zone{padding:10px;border-radius:10px;border:1px dashed #2a3b5d;background:#0f1a2d}
+  .drag-item{cursor:grab}
+  .drop-zone{min-height:48px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Cyber Vault Escape — High School (Phishing & Passwords)</h1>
+    <div class="subtitle">Grade band: <b>High School</b> • Topics: <b>Phishing</b>, <b>Passwords</b></div>
+    <p id="story"></p>
+    <div id="game"></div>
+    <div class="statusbar">
+      <div id="stageTag"></div>
+      <div id="scoreTag"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const plan = {
+  narrative: "You're monitoring the school network with the tech team. Alerts indicate suspicious logins and risky messages spreading. The security console locks critical systems until you prove cyber-savvy choices across five challenges.",
+  objectives: [
+    {stage:1, objective:"Spot QR-based phishing and choose a safe action."},
+    {stage:2, objective:"Evaluate password strength and avoid reuse/personal info."},
+    {stage:3, objective:"Construct a strong passphrase that meets advanced criteria."},
+    {stage:4, objective:"Match common phishing baits to the safest response."},
+    {stage:5, objective:"Apply multi-factor authentication (MFA) reasoning in context."}
+  ]
+};
+
+const puzzles = [
+  // 1) Phishing (QRishing) — MCQ
+  {
+    stage:1,type:"MCQ",topic:"phishing",
+    question:"A poster in the hallway promises “Free yearbook if you scan this QR in the next 3 minutes.” The QR resolves to bit.ly/yb-free-claim. What’s the BEST action?",
+    choices:[
+      "Scan immediately—free yearbook is worth it.",
+      "Share the QR in group chat so everyone can use it.",
+      "Ignore/report it and check yearbook info through the official school site.",
+      "Try it on a public computer instead of your own."
+    ],
+    answer:2,
+    explanation:"Urgent time limits + shortened links are classic phishing (QRishing) tactics. Verify offers via official channels.",
+    hints:["Short links can hide malicious sites.","Legit school offers won’t require a 3-minute deadline.","Use the official school site to verify."]
+  },
+  // 2) Passwords — MCQ (harder)
+  {
+    stage:2,type:"MCQ",topic:"passwords",
+    question:"Which option is the STRONGEST and least guessable (assuming you’ll remember it)?",
+    choices:[
+      "Cardinal2026!",
+      "C@rd1n@l2026!!",
+      "elm-violin-orbit#83",
+      "YorkCollege2026"
+    ],
+    answer:2,
+    explanation:"A long, unique passphrase with unrelated words + a small twist is stronger than stylized personal/school terms.",
+    hints:["Avoid personal/team/college words.","Length + unrelated words beat simple substitutions.","Add a number/symbol for extra strength."]
+  },
+  // 3) Passphrase — SHORT
+  {
+    stage:3,type:"SHORT",topic:"passwords",
+    question:"Create a strong passphrase: 3+ unrelated words (any order) + at least one number + at least one symbol. Example pattern: word1 word2 word3#7",
+    answerPattern:/^(?=.*\d)(?=.*[^A-Za-z0-9]).*(?:[A-Za-z]+.*){3,}/,
+    explanation:"Unrelated words greatly expand the search space. Number/symbol increases resistance to brute force and guessing.",
+    hints:["Pick three random words you don’t associate.","Add a digit somewhere.","Add a symbol like # ! ? or *"]
+  },
+  // 4) Phishing — MATCH
+  {
+    stage:4,type:"MATCH",topic:"phishing",
+    question:"Match each message to the safest action.",
+    pairs:[
+      ["‘I’m your principal—buy gift cards now’ from unknown number","Verify identity via official channel; do NOT send gift cards"],
+      ["‘Bank alert: click login-hs-check.com’","Use the bank’s official app/site to verify; don’t click the odd link"],
+      ["‘Prize winner! Pay shipping to claim’","Treat as scam; report/delete"],
+      ["‘Friend’s account sends weird link late night’","Confirm with your friend in person/voice before clicking"]
+    ],
+    explanation:"Different baits need tailored responses: verify identities, avoid unknown links, and report scams.",
+    hints:["Gift cards request = classic scam.","Odd domain? Verify via official app/site.","Unexpected link from friend? Confirm first."]
+  },
+  // 5) MFA — MCQ
+  {
+    stage:5,type:"MCQ",topic:"passwords",
+    question:"Your email password is strong, but the site offers MFA options. Which is the BEST security choice?",
+    choices:[
+      "Text message (SMS) codes only",
+      "Email code only",
+      "Authenticator app or security key (with backups)",
+      "No MFA—strong password is enough"
+    ],
+    answer:2,
+    explanation:"Authenticator apps or security keys resist SIM swap and email compromise; they offer stronger protection than SMS/email alone.",
+    hints:["MFA adds a second factor beyond the password.","Some factors are stronger than others.","App or hardware key > SMS/email codes."]
+  }
+];
+
+let score=0,idx=0,hintUsed=0;const maxHint=3;
+const storyEl=document.getElementById("story"),gameEl=document.getElementById("game"),stageTag=document.getElementById("stageTag"),scoreTag=document.getElementById("scoreTag");
+
+function renderIntro(){storyEl.textContent=plan.narrative;}
+function renderStage(){
+  if(idx>=puzzles.length){renderWin();return;}
+  const p=puzzles[idx];hintUsed=0;
+  stageTag.innerHTML=`<span class="stage-badge">Stage ${idx+1}/${puzzles.length} — ${p.topic.toUpperCase()}</span>`;
+  scoreTag.textContent=`Score: ${score}`;
+  let html=`<div class="question">${p.question}</div>`;
+  if(p.type==="MCQ"){
+    html+=`<div class="choices">`+p.choices.map((c,i)=>`<label class="choice"><input type="radio" name="mcq" value="${i}"> ${c}</label>`).join("")+`</div>`;
+  } else if(p.type==="SHORT"){
+    html+=`<input class="short-input" id="shortAns" placeholder="Type your answer..." />`;
+  } else if(p.type==="MATCH"){
+    const left = p.pairs.map((pair,i)=>`<div class="drag-item" draggable="true" data-idx="${i}">${String.fromCharCode(65+i)}. ${pair[0]}</div>`).join("");
+    const right = p.pairs.slice().sort(()=>Math.random()-0.5).map((pair,i)=>`<div class="drop-zone" data-target="${pair[1]}"><b>${i+1}.</b> ${pair[1]}</div>`).join("");
+    html+=`<div class="match-grid"><div>${left}</div><div>${right}</div></div><div class="subtitle" style="margin-top:8px">Drag each lettered message onto the correct numbered action.</div>`;
+  }
+  html+=`<div class="controls">
+    <button id="submitBtn">SUBMIT</button>
+    <button id="hintBtn">HINT</button>
+    <button id="skipBtn">SKIP</button>
+    <button id="scoreBtn">SCORE</button>
+  </div>
+  <div id="hintBox"></div>
+  <div id="feedback"></div>`;
+  gameEl.innerHTML=html;
+  document.getElementById("submitBtn").onclick=onSubmit;
+  document.getElementById("hintBtn").onclick=onHint;
+  document.getElementById("skipBtn").onclick=onSkip;
+  document.getElementById("scoreBtn").onclick=()=>alert(`Current Score: ${score}`);
+  if(p.type==="MATCH") enableMatchDnD(p);
+}
+
+function onSubmit(){
+  const p=puzzles[idx];let correct=false;
+  if(p.type==="MCQ"){
+    const chosen=document.querySelector('input[name="mcq"]:checked');
+    if(!chosen){toast("Select an option first.");return;}
+    correct=(Number(chosen.value)===p.answer);
+  } else if(p.type==="SHORT"){
+    const val=(document.getElementById("shortAns").value||"").trim();
+    if(!val){toast("Type an answer first.");return;}
+    correct=p.answerPattern.test(val);
+  } else if(p.type==="MATCH"){
+    correct = checkMatchSolution(p);
+  }
+  const feedback=document.getElementById("feedback");
+  if(correct){
+    score+=(3-hintUsed);
+    feedback.className="feedback good";
+    feedback.innerHTML="<b>Correct!</b> The lock clicks open.<div class='explain'>"+p.explanation+"</div>";
+    setTimeout(()=>{idx++;renderStage();},1200);
+  } else {
+    feedback.className="feedback bad";
+    feedback.innerHTML="<b>Incorrect!</b> Keypad flashes red.<div class='explain'>Try a hint.</div>";
+  }
+  scoreTag.textContent=`Score: ${score}`;
+}
+
+function onHint(){
+  const p=puzzles[idx],hintBox=document.getElementById("hintBox");
+  if(hintUsed>=maxHint){hintBox.innerHTML="<div class='hint'>No more hints.</div>";return;}
+  const text=p.hints?.[hintUsed]||"No hint.";
+  hintUsed++;
+  hintBox.innerHTML=`<div class="hint"><b>Hint ${hintUsed}/${maxHint}:</b> ${text}</div>`;
+}
+
+function onSkip(){const f=document.getElementById("feedback");f.className="feedback bad";f.innerHTML="<b>Skipped.</b> No points.";setTimeout(()=>{idx++;renderStage();},800);}
+function toast(msg){const f=document.getElementById("feedback");f.className="feedback bad";f.innerHTML=msg;}
+function renderWin(){gameEl.innerHTML=`<h2>🎉 You Escaped!</h2><div class="good feedback"><b>Correct!</b> Final door opens.</div><p class='explain'>Excellent choices on phishing defense, passwords, passphrases, and MFA.</p><p><b>Final Score:</b> <span class='codebox'>${score}</span></p>`;stageTag.innerHTML="<span class='stage-badge'>Complete</span>";scoreTag.textContent=`Score: ${score}`;}
+
+/* Drag-and-drop for MATCH */
+let currentMatches = [];
+function enableMatchDnD(p){
+  currentMatches = [];
+  const drags=[...document.querySelectorAll('.drag-item')];
+  const drops=[...document.querySelectorAll('.drop-zone')];
+  drags.forEach(d=>d.addEventListener('dragstart', ev=>{ev.dataTransfer.setData('text/plain', d.textContent);}));
+  drops.forEach(zone=>{
+    zone.addEventListener('dragover', ev=>ev.preventDefault());
+    zone.addEventListener('drop', ev=>{
+      ev.preventDefault();
+      const text=ev.dataTransfer.getData('text/plain');
+      zone.innerHTML = `<b>${zone.querySelector('b')?.textContent||''}</b> ${zone.getAttribute('data-target')}<div class="subtitle" style="margin-top:6px">• ${text}</div>`;
+      currentMatches = currentMatches.filter(m => m.to !== zone.getAttribute('data-target'));
+      currentMatches.push({from:text, to:zone.getAttribute('data-target')});
+    });
+  });
+}
+
+function checkMatchSolution(p){
+  if(!p.pairs?.length) return false;
+  const need = new Map(p.pairs.map(([msg,act])=>[act,msg]));
+  if(currentMatches.length < p.pairs.length) return false;
+  for(const {from,to} of currentMatches){
+    const expectedMsg = need.get(to);
+    if(!expectedMsg || !from.includes(expectedMsg)) return false;
+  }
+  return true;
+}
+
+renderIntro();
+renderStage();
+</script>
+</body>
+</html>
