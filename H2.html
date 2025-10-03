@@ -1,0 +1,209 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cybersecurity Escape Room - High School</title>
+<style>
+body { font-family: Arial, sans-serif; background: #101820; color: #fff; margin: 0; padding: 0;}
+header { background: #0a3d62; padding: 20px; text-align: center;}
+h1 { margin: 0; font-size: 24px;}
+.container { padding: 20px; max-width: 800px; margin: 0 auto;}
+.puzzle { display: none; margin-top: 20px; }
+button { background: #38ada9; border: none; color: #fff; padding: 10px 15px; margin: 5px; cursor: pointer; border-radius: 5px;}
+button:hover { background: #079992;}
+.feedback { margin-top: 10px; font-weight: bold;}
+.hints { margin-top: 10px; font-style: italic; }
+.scoreboard { background: #0a3d62; padding: 10px; text-align: center;}
+#downloadBtn { background:#f6b93b; color:#000; margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cybersecurity Escape Room</h1>
+  <div>Grade Band: High School | Topics: Phishing, Passwords</div>
+</header>
+<div class="container">
+  <div id="intro">
+    <p>You are a digital investigator trapped inside a virtual vault. The vault is secured by 5 encrypted locks. 
+    To escape, you must analyze suspicious emails, decipher clues about phishing, and show your mastery of avoiding online traps. 
+    Only then will the vault release you.</p>
+    <button onclick="startGame()">Begin Escape</button>
+  </div>
+
+  <div id="puzzle1" class="puzzle">
+    <h2>Lock 1: Suspicious Email</h2>
+    <p>You receive an email claiming you won a free laptop if you click a link. What characteristic makes this email look like a phishing attempt?</p>
+    <ul>
+      <li><button onclick="checkAnswer(1,'A')">A) Asking you to click a link for a prize you didn't enter</button></li>
+      <li><button onclick="checkAnswer(1,'B')">B) An email from your friend about homework</button></li>
+      <li><button onclick="checkAnswer(1,'C')">C) A notification from your school portal</button></li>
+      <li><button onclick="checkAnswer(1,'D')">D) An email receipt from your recent online purchase</button></li>
+    </ul>
+    <div id="feedback1" class="feedback"></div>
+    <button onclick="showHint(1)">Hint</button>
+    <div id="hints1" class="hints"></div>
+    <button onclick="skipPuzzle(1)">Skip Puzzle</button>
+  </div>
+
+  <div id="puzzle2" class="puzzle">
+    <h2>Lock 2: Password Puzzle</h2>
+    <p>Choose the strongest password from the list below:</p>
+    <ul>
+      <li><button onclick="checkAnswer(2,'A')">A) password123</button></li>
+      <li><button onclick="checkAnswer(2,'B')">B) 12345678</button></li>
+      <li><button onclick="checkAnswer(2,'C')">C) J0yFul!R@1nB0w2024</button></li>
+      <li><button onclick="checkAnswer(2,'D')">D) mypetname</button></li>
+    </ul>
+    <div id="feedback2" class="feedback"></div>
+    <button onclick="showHint(2)">Hint</button>
+    <div id="hints2" class="hints"></div>
+    <button onclick="skipPuzzle(2)">Skip Puzzle</button>
+  </div>
+
+  <div id="puzzle3" class="puzzle">
+    <h2>Lock 3: Phishing Detector</h2>
+    <p>A message tells you: "Your account will be locked in 2 hours unless you reply with your password." What is the best action?</p>
+    <ul>
+      <li><button onclick="checkAnswer(3,'A')">A) Reply quickly with your password</button></li>
+      <li><button onclick="checkAnswer(3,'B')">B) Ignore the request and report the message as phishing</button></li>
+      <li><button onclick="checkAnswer(3,'C')">C) Telephone the number inside the email immediately</button></li>
+      <li><button onclick="checkAnswer(3,'D')">D) Forward the email to all your contacts</button></li>
+    </ul>
+    <div id="feedback3" class="feedback"></div>
+    <button onclick="showHint(3)">Hint</button>
+    <div id="hints3" class="hints"></div>
+    <button onclick="skipPuzzle(3)">Skip Puzzle</button>
+  </div>
+
+  <div id="puzzle4" class="puzzle">
+    <h2>Lock 4: Match the Sign</h2>
+    <p>Match each suspicious element to "Phishing Indicator" or "Safe".</p>
+    <p><strong>Suspicious Elements:</strong></p>
+    <p id="matchQ4">
+      1) Unexpected urgent request for credentials<br>
+      2) Email from school domain with proper logo<br>
+      3) Offer that's too good to be true<br>
+    </p>
+    <button onclick="checkAnswer(4,'Answers')">Submit</button>
+    <div id="feedback4" class="feedback"></div>
+    <button onclick="showHint(4)">Hint</button>
+    <div id="hints4" class="hints"></div>
+    <button onclick="skipPuzzle(4)">Skip Puzzle</button>
+  </div>
+
+  <div id="puzzle5" class="puzzle">
+    <h2>Lock 5: Final Challenge</h2>
+    <p>You get an email from "support@bank-secur1ty.com" asking you to login using a link. How do you verify if it's safe?</p>
+    <ul>
+      <li><button onclick="checkAnswer(5,'A')">A) Hover over the link to see if the URL is legitimate</button></li>
+      <li><button onclick="checkAnswer(5,'B')">B) Immediately log in using the link</button></li>
+      <li><button onclick="checkAnswer(5,'C')">C) Reply with your credentials to confirm identity</button></li>
+      <li><button onclick="checkAnswer(5,'D')">D) Delete the email without telling anyone</button></li>
+    </ul>
+    <div id="feedback5" class="feedback"></div>
+    <button onclick="showHint(5)">Hint</button>
+    <div id="hints5" class="hints"></div>
+    <button onclick="skipPuzzle(5)">Skip Puzzle</button>
+  </div>
+
+  <div id="outro" class="puzzle">
+    <h2>Congratulations!</h2>
+    <p>You have escaped the Cybersecurity Vault! You successfully identified phishing attempts and strong password practices aligned with cybersecurity standards. Your awareness keeps systems safe.</p>
+    <p>Your Score: <span id="finalScore"></span>/5</p>
+  </div>
+
+  <div class="scoreboard">
+    Score: <span id="score">0</span>/5
+    <br>
+    <button id="downloadBtn" onclick="downloadPage()">Download This Game (.html)</button>
+  </div>
+</div>
+
+<script>
+window.__gameGrade = "high";
+window.__gameTopics = "phishing_passwords";
+
+let currentPuzzle = 0;
+let score = 0;
+
+const answers = {
+  1: "A",
+  2: "C",
+  3: "B",
+  4: "Answers", // matching
+  5: "A"
+};
+
+const explanations = {
+  1: "Phishing emails often promise unrealistic prizes and ask you to click a link unsolicited.",
+  2: "A strong password uses upper/lowercase, numbers, symbols, and is unique.",
+  3: "Legitimate services will never ask you to send your password; reporting is safest.",
+  4: "Urgent request for credentials and offers too good to be true are phishing, while proper school domain email is likely safe.",
+  5: "Hovering verifies where a link leads; never trust misspelled domains."
+};
+
+const hints = {
+  1: ["Think about prizes you didn't sign up for.", "Would your school suddenly send laptops?", "Look out for suspicious links."],
+  2: ["Short and obvious words are weak.", "Do numbers, upper/lowercase, and symbols help?", "The longest complex one is best."],
+  3: ["Never share your password.", "Scare tactics are common in phishing.", "Reporting suspicious messages helps."],
+  4: ["Does urgency matter?", "Is the offer realistic?", "A known domain with proper logo tends to be safe."],
+  5: ["Check the domain carefully.", "Hover before you click.", "Fake sites often have slight spelling errors."]
+};
+
+function startGame() {
+  document.getElementById("intro").style.display="none";
+  currentPuzzle=1;
+  document.getElementById("puzzle1").style.display="block";
+}
+
+function checkAnswer(puzzle, choice) {
+  let feedbackEl = document.getElementById("feedback"+puzzle);
+  if(answers[puzzle]===choice) {
+    feedbackEl.innerHTML = "Correct! " + explanations[puzzle] + "<br>The lock clicks open.";
+    score++;
+    document.getElementById("score").innerText = score;
+    setTimeout(()=>nextPuzzle(puzzle),1500);
+  } else {
+    feedbackEl.innerHTML = "Incorrect! Try again.";
+  }
+}
+
+function nextPuzzle(puzzle) {
+  document.getElementById("puzzle"+puzzle).style.display="none";
+  if(puzzle<5) {
+    currentPuzzle++;
+    document.getElementById("puzzle"+(puzzle+1)).style.display="block";
+  } else {
+    document.getElementById("outro").style.display="block";
+    document.getElementById("finalScore").innerText = score;
+  }
+}
+
+function showHint(puzzle) {
+  let hdiv=document.getElementById("hints"+puzzle);
+  let htxt=hints[puzzle];
+  let shown=hdiv.childElementCount;
+  if(shown<htxt.length) {
+    let p=document.createElement("p");
+    p.innerText="Hint: "+htxt[shown];
+    hdiv.appendChild(p);
+  }
+}
+
+function skipPuzzle(puzzle) {
+  document.getElementById("feedback"+puzzle).innerHTML="Puzzle skipped. The lock bypassed but no score gained.";
+  setTimeout(()=>nextPuzzle(puzzle),1000);
+}
+
+function downloadPage() {
+  const blob = new Blob([document.documentElement.outerHTML], {type: "text/html"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "escape_game_"+window.__gameGrade+"_"+window.__gameTopics+".html";
+  a.click();
+}
+</script>
+</body>
+</html>
+```
