@@ -1,0 +1,187 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cybersecurity Escape Room - High School</title>
+<style>
+    body { font-family: Arial, sans-serif; background-color: #0e0e1a; color: #f0f0f0; margin: 0; padding: 0; }
+    header { background-color: #222244; padding: 20px; text-align: center; }
+    h1 { margin: 0; color: #ffcc00; }
+    .container { padding: 20px; }
+    .puzzle { display: none; margin-top:20px; }
+    .visible { display: block; }
+    button { background-color: #444466; color: white; padding: 10px 20px; border: none; margin: 5px; cursor: pointer; border-radius:5px; }
+    button:hover { background-color: #666688; }
+    .feedback { margin-top:10px; font-weight:bold; }
+    .hints { margin-top:10px; font-style: italic; color:#99ccff; }
+    #scoreBoard { position:fixed; top:10px; right:10px; background:#222244; padding:10px; border-radius:5px; }
+    #downloadBtn { position:fixed; bottom:10px; right:10px; background:#009966; }
+</style>
+</head>
+<body>
+<header>
+    <h1>Cybersecurity Escape Room: Phishing & Passwords</h1>
+</header>
+<div class="container">
+    <p id="intro">
+        You are a digital investigator trapped in a virtual vault. To escape, 
+        you must open 5 locked doors by solving puzzles about phishing and password safety. 
+        Each correct solution opens a door leading you closer to freedom. Be careful—cyber traps lie ahead!
+    </p>
+    <div id="puzzle1" class="puzzle visible">
+        <h2>Door 1: Suspicious Email</h2>
+        <p>Question: You receive an email that says your bank account will be closed unless you click a link immediately and enter your login credentials. 
+        What is the most suspicious element here?</p>
+        <button onclick="checkAnswer(1,'A')">A. The urgency and threat of account closure</button><br>
+        <button onclick="checkAnswer(1,'B')">B. The sender address looks correct</button><br>
+        <button onclick="checkAnswer(1,'C')">C. The email uses your correct full name</button>
+        <div class="feedback" id="feedback1"></div>
+        <div class="hints" id="hints1"></div>
+        <button onclick="showHint(1)">Hint</button>
+        <button onclick="skipPuzzle(1)">Skip</button>
+    </div>
+
+    <div id="puzzle2" class="puzzle">
+        <h2>Door 2: Password Strength</h2>
+        <p>Question: Which of the following passwords is most secure?</p>
+        <button onclick="checkAnswer(2,'A')">A. John123</button><br>
+        <button onclick="checkAnswer(2,'B')">B. ilovecats</button><br>
+        <button onclick="checkAnswer(2,'C')">C. h!T7@x9Qz*</button>
+        <div class="feedback" id="feedback2"></div>
+        <div class="hints" id="hints2"></div>
+        <button onclick="showHint(2)">Hint</button>
+        <button onclick="skipPuzzle(2)">Skip</button>
+    </div>
+
+    <div id="puzzle3" class="puzzle">
+        <h2>Door 3: Phishing Link Check</h2>
+        <p>SHORT: An email claims to be from your teacher and has a link: <em>www.sch00l-login.com</em>. 
+        What should you do first before clicking?</p>
+        <input type="text" id="answer3" placeholder="Type answer here">
+        <button onclick="checkAnswer(3,null)">Submit</button>
+        <div class="feedback" id="feedback3"></div>
+        <div class="hints" id="hints3"></div>
+        <button onclick="showHint(3)">Hint</button>
+        <button onclick="skipPuzzle(3)">Skip</button>
+    </div>
+
+    <div id="puzzle4" class="puzzle">
+        <h2>Door 4: Match the Tactics</h2>
+        <p>Match the phishing tactic with its description:</p>
+        <p>A. Spear phishing<br>
+           B. Clone phishing<br>
+           C. Whaling</p>
+        <p>1. Targets executives or high-profile individuals<br>
+           2. Alters a legitimate message but with a malicious link<br>
+           3. Personalizes the attack to one specific person</p>
+        <p>Format: A-#, B-#, C-#</p>
+        <input type="text" id="answer4" placeholder="e.g., A-3, B-2, C-1">
+        <button onclick="checkAnswer(4,null)">Submit</button>
+        <div class="feedback" id="feedback4"></div>
+        <div class="hints" id="hints4"></div>
+        <button onclick="showHint(4)">Hint</button>
+        <button onclick="skipPuzzle(4)">Skip</button>
+    </div>
+
+    <div id="puzzle5" class="puzzle">
+        <h2>Door 5: Cracking the Final Lock</h2>
+        <p>Question: You are asked to create a passphrase. Which one is best?</p>
+        <button onclick="checkAnswer(5,'A')">A. Password2024</button><br>
+        <button onclick="checkAnswer(5,'B')">B. T!mmy#07</button><br>
+        <button onclick="checkAnswer(5,'C')">C. PurpleRiver$Dream9Moon</button>
+        <div class="feedback" id="feedback5"></div>
+        <div class="hints" id="hints5"></div>
+        <button onclick="showHint(5)">Hint</button>
+        <button onclick="skipPuzzle(5)">Skip</button>
+    </div>
+
+    <div id="final" class="puzzle">
+        <h2>Freedom Achieved!</h2>
+        <p>Congratulations! You solved the cybersecurity challenges and escaped the vault. 
+        Your awareness of phishing tricks and password power saved you.</p>
+    </div>
+</div>
+<div id="scoreBoard">Score: <span id="score">0</span></div>
+<button id="downloadBtn" onclick="downloadPage()">Download This Game (.html)</button>
+<script>
+window.__gameGrade = "high";
+window.__gameTopics = "phishing_passwords";
+let score=0;
+let current=1;
+const answers={
+  1:'A',
+  2:'C',
+  3:'hover over the link',
+  4:'A-3, B-2, C-1',
+  5:'C'
+};
+const explanations={
+  1:"Phishing emails often create urgency and fear. Recognizing this prevents falling for scams.",
+  2:"Strong passwords are long, random, and complex. h!T7@x9Qz* is strongest.",
+  3:"Always inspect the link (hover over it) to see the real destination before clicking.",
+  4:"Spear phishing is targeted at one person, clone phishing modifies real messages, and whaling targets executives.",
+  5:"A long passphrase with multiple words and symbols is far more secure."
+};
+const hints={
+  1:["Think about pressure tactics.","Legitimate banks rarely threaten closure instantly.","It's about urgency."],
+  2:["Length + randomness helps.","Is it predictable or in dictionary?","The one with symbols and varied cases."],
+  3:["Don't rush a click.","You can use your mouse.","Hover to inspect the real URL."],
+  4:["Executives are large targets.","Cloning means copying a real email.","Spear = very targeted."],
+  5:["Longer is better.","Multiple words and symbols.","Looks like a sentence or phrase."]
+};
+function checkAnswer(num,choice){
+  let correct=false;
+  if(num===3){
+    let ans=document.getElementById('answer3').value.toLowerCase();
+    if(ans.includes("hover")) correct=true;
+  } else if(num===4){
+    let ans=document.getElementById('answer4').value.replace(/\s/g,'');
+    if(ans==="A-3,B-2,C-1"||ans==="a-3,b-2,c-1") correct=true;
+  } else {
+    if(choice===answers[num]) correct=true;
+  }
+  if(correct){
+    document.getElementById('feedback'+num).innerHTML="Correct! "+explanations[num]+" <br>Door unlocked!";
+    score+=10;
+    document.getElementById('score').innerText=score;
+    setTimeout(()=>nextPuzzle(num),2000);
+  } else {
+    document.getElementById('feedback'+num).innerHTML="Incorrect! Try again.";
+  }
+}
+function showHint(num){
+  let el=document.getElementById('hints'+num);
+  let used=el.getAttribute("data-used")||0;
+  used=parseInt(used);
+  if(used<hints[num].length){
+    el.innerHTML+="<div>"+hints[num][used]+"</div>";
+    el.setAttribute("data-used",used+1);
+  } else {
+    el.innerHTML+="<div>No more hints.</div>";
+  }
+}
+function skipPuzzle(num){
+  document.getElementById('feedback'+num).innerHTML="Skipped! The door unlocks, but no score.";
+  setTimeout(()=>nextPuzzle(num),2000);
+}
+function nextPuzzle(num){
+  document.getElementById('puzzle'+num).classList.remove('visible');
+  if(num<5){
+    document.getElementById('puzzle'+(num+1)).classList.add('visible');
+  } else {
+    document.getElementById('final').classList.add('visible');
+  }
+}
+function downloadPage(){
+    const blob=new Blob([document.documentElement.outerHTML],{type:"text/html"});
+    const a=document.createElement("a");
+    let filename="EscapeRoom_"+window.__gameGrade+"_"+window.__gameTopics+".html";
+    a.download=filename;
+    a.href=URL.createObjectURL(blob);
+    a.click();
+}
+</script>
+</body>
+</html>
+```
