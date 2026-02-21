@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EAS Escape Room: Behaviorism Breakout (Chapter 7)</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a33;
+      --panel2:#0f1730;
+      --text:#e9eefc;
+      --muted:#b6c2f3;
+      --accent:#6ee7ff;
+      --good:#4ade80;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --line:#27335f;
+      --shadow: 0 14px 40px rgba(0,0,0,.45);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background: radial-gradient(900px 600px at 20% 10%, rgba(110,231,255,.18), transparent 55%),
+                  radial-gradient(1000px 800px at 90% 30%, rgba(74,222,128,.10), transparent 60%),
+                  radial-gradient(900px 700px at 60% 90%, rgba(251,113,133,.10), transparent 60%),
+                  var(--bg);
+      min-height:100vh;
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+      padding:22px;
+    }
+    .app{
+      width:min(1100px, 100%);
+      display:grid;
+      grid-template-columns: 340px 1fr;
+      gap:18px;
+      position:relative;
+      z-index:1;
+    }
+    @media (max-width: 980px){
+      .app{grid-template-columns: 1fr; }
+      .sidebar{position:static}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+      z-index:2;
+    }
+    .sidebar{
+      position:sticky;
+      top:18px;
+      height:fit-content;
+      z-index:3;
+    }
+    .sidebar header{
+      padding:16px 16px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(110,231,255,.10), transparent);
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .badge{
+      width:38px;height:38px;
+      border-radius:12px;
+      display:grid;place-items:center;
+      background: rgba(110,231,255,.14);
+      border:1px solid rgba(110,231,255,.35);
+      font-weight:800;
+      letter-spacing:.5px;
+      color:var(--accent);
+      font-family:var(--mono);
+    }
+    h1{
+      font-size:16px;
+      margin:0;
+      line-height:1.2;
+    }
+    .sub{
+      margin-top:6px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      padding:14px 16px 16px;
+    }
+    .stat{
+      background: rgba(18,26,51,.65);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:10px 10px;
+    }
+    .stat .k{
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    .stat .v{
+      font-size:18px;
+      font-weight:800;
+      font-family:var(--mono);
+    }
+    .stat .v.good{color:var(--good)}
+    .stat .v.bad{color:var(--bad)}
+
+    .controls{
+      padding:0 16px 16px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      position:relative;
+      z-index:4;
+      pointer-events:auto;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:700;
+      cursor:pointer;
+      color:var(--text);
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+      user-select:none;
+      pointer-events:auto; /* ensure clickable */
+    }
+    button:hover{ background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.18); }
+    button:active{ transform: translateY(1px); }
+    button.primary{
+      background: rgba(110,231,255,.14);
+      border-color: rgba(110,231,255,.40);
+      color: #dffbff;
+    }
+    button.danger{
+      background: rgba(251,113,133,.14);
+      border-color: rgba(251,113,133,.38);
+    }
+    button.good{
+      background: rgba(74,222,128,.14);
+      border-color: rgba(74,222,128,.38);
+    }
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    .download{
+      width:100%;
+      justify-content:center;
+      display:flex;
+      padding:0 16px 16px;
+      position:relative;
+      z-index:4;
+      pointer-events:auto;
+    }
+    .download button{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-family:var(--mono);
+    }
+    .download .dot{
+      width:9px;height:9px;border-radius:99px;
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(110,231,255,.7);
+    }
+    .footerNote{
+      padding:0 16px 16px;
+      color: rgba(182,194,243,.85);
+      font-size:12px;
+      line-height:1.45;
+      position:relative;
+      z-index:4;
+    }
+    .pill{
+      font-family: var(--mono);
+      font-size:11px;
+      padding:5px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      color: rgba(233,238,252,.9);
+      white-space:nowrap;
+    }
+    .pill.good{ border-color: rgba(74,222,128,.38); background: rgba(74,222,128,.12); color:#dcffe8; }
+    .pill.bad{ border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.12); color:#ffe3ea; }
+    .pill.warn{ border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.12); color:#fff3d1; }
+    .kbd{
+      font-family: var(--mono);
+      font-weight:900;
+      font-size:11px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.05);
+      padding:2px 6px;
+      border-radius:8px;
+      color: rgba(233,238,252,.92);
+    }
+
+    /* Main */
+    .main header{
+      padding:18px 18px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+    }
+    .titleRow{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .chapter{
+      font-family:var(--mono);
+      font-size:12px;
+      color:rgba(233,238,252,.85);
+      border:1px solid rgba(255,255,255,.14);
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(15,23,48,.55);
+    }
+    .story{
+      padding:16px 18px 2px;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:14px;
+    }
+    .divider{
+      height:1px;
+      margin:14px 18px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+    }
+    .puzzle{
+      padding:12px 18px 18px;
+    }
+    .lock{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:16px;
+      background: rgba(18,26,51,.7);
+      border:1px solid rgba(255,255,255,.10);
+      margin-bottom:12px;
+    }
+    .lock .left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .lockIcon{
+      width:34px;height:34px;border-radius:12px;
+      display:grid;place-items:center;
+      font-family:var(--mono);
+      font-weight:900;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      flex:0 0 auto;
+    }
+    .lockIcon.open{
+      color:#052e1a;
+      background: rgba(74,222,128,.18);
+      border-color: rgba(74,222,128,.45);
+    }
+    .lock .meta{
+      min-width:0;
+    }
+    .lock .meta .name{
+      font-weight:800;
+      font-size:14px;
+      margin:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .lock .meta .hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .q{
+      padding:14px 14px 12px;
+      border-radius:16px;
+      background: rgba(15,23,48,.60);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .q .stem{
+      font-size:15px;
+      line-height:1.5;
+      color: var(--text);
+      margin:0 0 12px;
+      font-weight:750;
+    }
+    .choices{ display:grid; gap:10px; }
+    .choice{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.10);
+      cursor:pointer;
+      transition: background .2s ease, border-color .2s ease, transform .06s ease;
+    }
+    .choice:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); }
+    .choice:active{ transform: translateY(1px); }
+    .choice input{
+      margin-top:3px;
+      accent-color: var(--accent);
+      cursor:pointer;
+    }
+    .choice .label{
+      font-family:var(--mono);
+      font-weight:900;
+      color: rgba(233,238,252,.9);
+      width:22px;
+      flex:0 0 auto;
+    }
+    .choice .text{
+      color: var(--muted);
+      line-height:1.35;
+      font-size:14px;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+      align-items:center;
+    }
+    .feedback{
+      margin-top:12px;
+      border-radius:16px;
+      padding:12px 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(18,26,51,.65);
+      display:none;
+      white-space:pre-line;
+    }
+    .feedback.show{ display:block; }
+    .feedback .headline{
+      font-weight:900;
+      margin:0 0 6px;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .feedback.good{ border-color: rgba(74,222,128,.45); background: rgba(74,222,128,.12); }
+    .feedback.bad{ border-color: rgba(251,113,133,.40); background: rgba(251,113,133,.12); }
+    .feedback .body{
+      color: rgba(233,238,252,.92);
+      line-height:1.5;
+      margin:0;
+      font-size:13px;
+      white-space:pre-line;
+    }
+    .hintBox{
+      margin-top:10px;
+      border-radius:16px;
+      padding:12px 14px;
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(15,23,48,.55);
+      display:none;
+    }
+    .hintBox.show{ display:block; }
+    .hintBox .hTitle{
+      font-family:var(--mono);
+      font-weight:900;
+      font-size:12px;
+      color: rgba(233,238,252,.9);
+      margin:0 0 8px;
+    }
+    .hintItem{
+      color: var(--muted);
+      line-height:1.45;
+      font-size:13px;
+      margin:0 0 8px;
+    }
+    .hintItem:last-child{ margin-bottom:0; }
+
+    /* Progress modal (no alerts) */
+    .modalBackdrop{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:18px;
+    }
+    .modalBackdrop.show{ display:flex; }
+    .modal{
+      width:min(560px, 100%);
+      background: rgba(18,26,51,.92);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal header{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: linear-gradient(180deg, rgba(110,231,255,.10), transparent);
+    }
+    .modal h3{
+      margin:0;
+      font-size:14px;
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+    .modal .content{
+      padding:14px;
+      color: rgba(233,238,252,.92);
+      line-height:1.55;
+      font-size:13px;
+    }
+    .modal .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    @media(max-width:520px){ .modal .grid{grid-template-columns:1fr;} }
+
+    .endScreen{
+      padding:18px;
+      display:none;
+    }
+    .endScreen.show{ display:block; }
+    .endTitle{
+      font-size:20px;
+      margin:0 0 8px;
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+    .endBody{
+      color: var(--muted);
+      line-height:1.6;
+      margin:0 0 14px;
+    }
+    .endGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 560px){
+      .endGrid{ grid-template-columns:1fr; }
+    }
+    .tiny{
+      font-size:11px;color:rgba(182,194,243,.9);
+      line-height:1.45;
+      margin-top:10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="card sidebar" aria-label="Game Sidebar">
+      <header>
+        <div class="brand">
+          <div class="badge">EAS</div>
+          <div>
+            <h1>Behaviorism Breakout</h1>
+            <div class="sub">An escape room of MCQ “locks” for Chapter 7: Classical + Operant Conditioning.</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="stats" role="status" aria-live="polite">
+        <div class="stat">
+          <div class="k">LOCK</div>
+          <div class="v" id="statLock">1/13</div>
+        </div>
+        <div class="stat">
+          <div class="k">SCORE</div>
+          <div class="v good" id="statScore">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">HINTS USED</div>
+          <div class="v" id="statHints">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">SKIPS</div>
+          <div class="v bad" id="statSkips">0</div>
+        </div>
+      </div>
+
+      <div class="controls" aria-label="Global controls">
+        <button class="primary" id="btnRestart" type="button">Restart</button>
+        <button id="btnProgress" type="button">Progress</button>
+        <button class="danger" id="btnResetScore" type="button">Reset Score</button>
+      </div>
+
+      <div class="download" aria-label="Download control">
+        <button class="good" id="btnDownload" type="button">
+          <span class="dot" aria-hidden="true"></span>
+          Download This Game (.html)
+        </button>
+      </div>
+
+      <div class="footerNote">
+        <div class="pill warn">Safety</div>
+        <p style="margin:10px 0 0;">
+          School-safe contexts only. No hacking/malware/exploit instructions.
+        </p>
+        <p style="margin:10px 0 0;">
+          Exam traps: <span class="kbd">negative reinforcement ≠ punishment</span>;
+          antecedent = before; consequence = after.
+        </p>
+      </div>
+    </aside>
+
+    <main class="card main" aria-label="Main Game Area">
+      <header>
+        <div class="titleRow">
+          <div>
+            <div class="chapter">Escape Room • Doors, Locks, and Concepts</div>
+            <h2 style="margin:10px 0 0; font-size:18px; font-weight:950; letter-spacing:.2px;">The Hallway of Consequences</h2>
+          </div>
+          <div class="pill" id="statusPill">LOCKED</div>
+        </div>
+      </header>
+
+      <section class="story">
+        <p style="margin:0 0 10px;">
+          You’re in a quiet school building after hours. The hallway doors are sealed by 13 “concept locks.”
+          Each lock opens only when you correctly identify the behavioral principle in a classroom scenario.
+        </p>
+        <p style="margin:0;">
+          Use <strong>HINT</strong> if stuck (−2) or <strong>SKIP</strong> (−5). Wrong answers cost −1.
+        </p>
+      </section>
+
+      <div class="divider"></div>
+
+      <section class="puzzle" id="puzzleArea" aria-live="polite"></section>
+
+      <section class="endScreen" id="endScreen" aria-live="polite">
+        <h3 class="endTitle">You Escaped! 🎓🔓</h3>
+        <p class="endBody">
+          You unlocked all doors by applying behavioral learning principles. Review your results below and try again to improve your score.
+        </p>
+        <div class="endGrid">
+          <div class="stat">
+            <div class="k">FINAL SCORE</div>
+            <div class="v good" id="finalScore">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">LOCKS CLEARED</div>
+            <div class="v" id="finalLocks">13/13</div>
+          </div>
+          <div class="stat">
+            <div class="k">HINTS USED</div>
+            <div class="v" id="finalHints">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">SKIPS</div>
+            <div class="v bad" id="finalSkips">0</div>
+          </div>
+        </div>
+        <p class="tiny">
+          Aim for a clean run: high score, few hints, zero skips.
+        </p>
+        <div class="actions" style="margin-top:14px;">
+          <button class="primary" id="btnPlayAgain" type="button">Play Again</button>
+          <button id="btnReviewAll" type="button">Review Locks</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Progress Modal -->
+  <div class="modalBackdrop" id="progressModal" role="dialog" aria-modal="true" aria-label="Progress">
+    <div class="modal">
+      <header>
+        <h3>Progress Snapshot</h3>
+        <button id="btnCloseModal" type="button">Close</button>
+      </header>
+      <div class="content">
+        <div id="progressText"></div>
+        <div class="grid" style="margin-top:12px;">
+          <div class="stat">
+            <div class="k">CURRENT LOCK</div>
+            <div class="v" id="pmLock">1/13</div>
+          </div>
+          <div class="stat">
+            <div class="k">SCORE</div>
+            <div class="v good" id="pmScore">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">HINTS USED</div>
+            <div class="v" id="pmHints">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">SKIPS</div>
+            <div class="v bad" id="pmSkips">0</div>
+          </div>
+        </div>
+        <p style="margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.5;">
+          Quick rule: if behavior <strong>increases</strong> → reinforcement. If behavior <strong>decreases</strong> → punishment/extinction.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const puzzles = [
+      {
+        id: 1,
+        lockName: "Door 1 — The Participation Lock",
+        doorFlavor: "A classroom door hums softly. “Behaviors that increase…”",
+        question: "A teacher consistently smiles and nods when students contribute thoughtful comments. Student participation increases over time. This is an example of:",
+        choices: [
+          { key: "A", text: "Negative reinforcement" },
+          { key: "B", text: "Positive reinforcement" },
+          { key: "C", text: "Response cost" },
+          { key: "D", text: "Extinction" }
+        ],
+        correct: ["B"],
+        explanation: "Positive reinforcement adds something desirable (approval) after a behavior to increase it. This matters because teacher feedback can strengthen participation when it is timely and meaningful.",
+        hints: [
+          "Ask: did participation increase or decrease?",
+          "Reinforcement increases behavior; punishment decreases behavior.",
+          "Smiling/nodding adds a positive consequence after participation."
+        ],
+        codeClue: "Code shard: +R"
+      },
+      {
+        id: 2,
+        lockName: "Door 2 — The Proximity Lock",
+        doorFlavor: "A note: “Before the behavior…”",
+        question: "A student frequently leaves their seat. The teacher begins standing near the student during independent work. The behavior decreases. This strategy primarily changes:",
+        choices: [
+          { key: "A", text: "Consequence" },
+          { key: "B", text: "Reinforcement schedule" },
+          { key: "C", text: "Antecedent" },
+          { key: "D", text: "Punishment" }
+        ],
+        correct: ["C"],
+        explanation: "Standing nearby changes antecedent conditions (what happens before/during), often preventing behavior. This matters because antecedent strategies are preventive and preserve classroom climate.",
+        hints: [
+          "Antecedents occur before the behavior.",
+          "No reward/penalty was added—setting changed.",
+          "Proximity control is an antecedent adjustment."
+        ],
+        codeClue: "Code shard: A→"
+      },
+      {
+        id: 3,
+        lockName: "Door 3 — The Song Trigger Lock",
+        doorFlavor: "A speaker crackles. “Pairing matters.”",
+        question: "A student feels anxious every time a particular song plays because it was repeatedly used before difficult tests. This reaction illustrates:",
+        choices: [
+          { key: "A", text: "Operant conditioning" },
+          { key: "B", text: "Classical conditioning" },
+          { key: "C", text: "Shaping" },
+          { key: "D", text: "Self-management" }
+        ],
+        correct: ["B"],
+        explanation: "Classical conditioning: a neutral stimulus (song) becomes linked to an automatic emotional response (anxiety) through repeated pairing with tests. This matters because classroom cues can unintentionally trigger anxiety.",
+        hints: [
+          "Is it automatic/emotional (involuntary) or chosen?",
+          "Song + tests were paired repeatedly.",
+          "Think: conditioned emotional response."
+        ],
+        codeClue: "Code shard: CS"
+      },
+      {
+        id: 4,
+        lockName: "Door 4 — The Homework Relief Lock",
+        doorFlavor: "Clipboard: “Remove something unpleasant…”",
+        question: "A teacher removes homework for students who complete in-class work efficiently. Completion rates increase. This is:",
+        choices: [
+          { key: "A", text: "Presentation punishment" },
+          { key: "B", text: "Negative reinforcement" },
+          { key: "C", text: "Shaping" },
+          { key: "D", text: "Extinction" }
+        ],
+        correct: ["B"],
+        explanation: "Negative reinforcement increases behavior by removing something unpleasant (homework) after desired behavior. EAS often tests this trap: negative reinforcement is not punishment.",
+        hints: [
+          "Behavior increased.",
+          "Something unpleasant was removed.",
+          "Removal that increases behavior = negative reinforcement."
+        ],
+        codeClue: "Code shard: −R"
+      },
+      {
+        id: 5,
+        lockName: "Door 5 — The Step-by-Step Writing Lock",
+        doorFlavor: "Notebook icon: “Small steps count.”",
+        question: "A teacher reinforces a student first for writing one sentence, then two, gradually increasing expectations. This is:",
+        choices: [
+          { key: "A", text: "Response cost" },
+          { key: "B", text: "Shaping" },
+          { key: "C", text: "Premack principle" },
+          { key: "D", text: "Classical conditioning" }
+        ],
+        correct: ["B"],
+        explanation: "Shaping reinforces successive approximations toward a target behavior. This matters because teaching and behavior support often require gradual skill building.",
+        hints: [
+          "The demand increases gradually.",
+          "Progress is reinforced step-by-step.",
+          "That pattern defines shaping."
+        ],
+        codeClue: "Code shard: ⇧"
+      },
+      {
+        id: 6,
+        lockName: "Door 6 — The Attention Fade Lock",
+        doorFlavor: "Sign: “No attention, no fuel.”",
+        question: "A teacher stops giving attention to a student who frequently interrupts. Over time, the interruptions decrease. This is:",
+        choices: [
+          { key: "A", text: "Negative reinforcement" },
+          { key: "B", text: "Presentation punishment" },
+          { key: "C", text: "Extinction" },
+          { key: "D", text: "Removal punishment" }
+        ],
+        correct: ["C"],
+        explanation: "Extinction: a previously reinforced behavior decreases when reinforcement stops. This matters because attention can unintentionally maintain disruption.",
+        hints: [
+          "Attention was removed.",
+          "No punishment was added.",
+          "Removing reinforcement over time = extinction."
+        ],
+        codeClue: "Code shard: Ø"
+      },
+      {
+        id: 7,
+        lockName: "Door 7 — The Token Vault",
+        doorFlavor: "Safe clicks: “Earn now, trade later.”",
+        question: "Students earn tokens for positive behavior that can be exchanged for privileges. This is an example of:",
+        choices: [
+          { key: "A", text: "Contiguity" },
+          { key: "B", text: "Token reinforcement" },
+          { key: "C", text: "Shaping" },
+          { key: "D", text: "Functional behavioral assessment" }
+        ],
+        correct: ["B"],
+        explanation: "Token reinforcement uses conditioned reinforcers (tokens/points) exchangeable for rewards. This matters because token systems can support routines when implemented fairly.",
+        hints: [
+          "Tokens are not the final reward.",
+          "Behavior earns points/coins.",
+          "That’s a token economy."
+        ],
+        codeClue: "Code shard: ★"
+      },
+      {
+        id: 8,
+        lockName: "Door 8 — The Hand Signal Lock",
+        doorFlavor: "Glowing hand icon: “When you see it…”",
+        question: "A teacher tells students, “When I raise my hand, you stop talking.” Over time, students immediately quiet down when the teacher raises her hand. This is best explained by:",
+        choices: [
+          { key: "A", text: "Stimulus control" },
+          { key: "B", text: "Classical conditioning" },
+          { key: "C", text: "Response cost" },
+          { key: "D", text: "Premack principle" }
+        ],
+        correct: ["A"],
+        explanation: "Stimulus control: a cue reliably signals what behavior is expected. This matters because routines guide behavior without escalation.",
+        hints: [
+          "A signal is functioning as a cue.",
+          "Not emotional pairing—routine responding.",
+          "Cue → behavior = stimulus control."
+        ],
+        codeClue: "Code shard: SC"
+      },
+      {
+        id: 9,
+        lockName: "Door 9 — The ABC Notebook Lock",
+        doorFlavor: "Binder labeled A–B–C opens slightly.",
+        question: "A teacher documents antecedents, behaviors, and consequences to determine why a student acts out. This process is called:",
+        choices: [
+          { key: "A", text: "Positive practice" },
+          { key: "B", text: "Functional behavioral assessment" },
+          { key: "C", text: "Differential reinforcement" },
+          { key: "D", text: "Presentation punishment" }
+        ],
+        correct: ["B"],
+        explanation: "FBA analyzes A–B–C patterns to identify behavior function (attention, escape, etc.). This matters because interventions should match function.",
+        hints: [
+          "Systematic A–B–C recording.",
+          "Goal is to learn why behavior occurs.",
+          "That is FBA."
+        ],
+        codeClue: "Code shard: FBA"
+      },
+      {
+        id: 10,
+        lockName: "Door 10 — The After-School Avoidance Lock",
+        doorFlavor: "Bell rings: “Avoid something unpleasant…”",
+        question: "A student completes homework to avoid staying after school. Homework completion increases. This is:",
+        choices: [
+          { key: "A", text: "Positive reinforcement" },
+          { key: "B", text: "Negative reinforcement" },
+          { key: "C", text: "Removal punishment" },
+          { key: "D", text: "Extinction" }
+        ],
+        correct: ["B"],
+        explanation: "Negative reinforcement increases behavior through escape/avoidance of an unpleasant outcome. This matters because avoidance patterns can be reinforced unintentionally.",
+        hints: [
+          "Behavior increased.",
+          "Student avoids something unpleasant.",
+          "Avoidance that increases behavior = negative reinforcement."
+        ],
+        codeClue: "Code shard: ESC"
+      },
+      {
+        id: 11,
+        lockName: "Door 11 — The Short-Term Silence Lock",
+        doorFlavor: "Warning light: “Suppressed, not taught.”",
+        question: "A teacher publicly reprimands a student for talking during class. The student stops talking temporarily but later resumes the behavior when the teacher is not present. Which explanation best accounts for this outcome?",
+        choices: [
+          { key: "A", text: "The punishment was too severe." },
+          { key: "B", text: "The student was negatively reinforced." },
+          { key: "C", text: "The punishment suppressed behavior without teaching replacement behavior." },
+          { key: "D", text: "The behavior was shaped unintentionally." }
+        ],
+        correct: ["C"],
+        explanation: "Punishment can suppress behavior temporarily but doesn’t teach alternatives. This matters because durable change requires teaching and reinforcing replacement behavior.",
+        hints: [
+          "Behavior returned when teacher wasn’t present.",
+          "No replacement behavior was taught.",
+          "Suppression ≠ skill-building."
+        ],
+        codeClue: "Code shard: RPL"
+      },
+      {
+        id: 12,
+        lockName: "Door 12 — The Praise Equity Lock",
+        doorFlavor: "Mirror shows two students. “Fairness matters.”",
+        question: "A teacher frequently praises one high-performing student. Other students begin disengaging from tasks. Which concern about behavioral strategies is most relevant?",
+        choices: [
+          { key: "A", text: "Reinforcement schedules were inconsistent." },
+          { key: "B", text: "Praise may decrease intrinsic motivation if perceived as controlling or unfair." },
+          { key: "C", text: "The Premack principle was misapplied." },
+          { key: "D", text: "The antecedent was not clearly defined." }
+        ],
+        correct: ["B"],
+        explanation: "If praise feels unfair/controlling, motivation may drop for others. This matters because reinforcement should be equitable and tied to effort or growth.",
+        hints: [
+          "Who is receiving reinforcement?",
+          "Others disengaged—think fairness/autonomy.",
+          "Behavioral tools can backfire if inequitable."
+        ],
+        codeClue: "Code shard: EQ"
+      },
+      {
+        id: 13,
+        lockName: "Door 13 — The Escape Function Lock",
+        doorFlavor: "Final door: “Function over form.”",
+        question: "A student avoids reading aloud by claiming to feel ill. The teacher allows the student to skip reading. The behavior increases. What function most likely maintains this behavior?",
+        choices: [
+          { key: "A", text: "Access to attention" },
+          { key: "B", text: "Escape from task demand" },
+          { key: "C", text: "Sensory stimulation" },
+          { key: "D", text: "Positive reinforcement through praise" }
+        ],
+        correct: ["B"],
+        explanation: "Skipping reading removes an aversive demand, reinforcing avoidance (escape). This matters because function-based supports teach alternatives without reinforcing avoidance.",
+        hints: [
+          "What did the student avoid?",
+          "Demand was removed as a consequence.",
+          "That’s escape-maintained behavior."
+        ],
+        codeClue: "Master code: +R A→ CS −R ⇧ Ø ★ SC FBA ESC RPL EQ"
+      }
+    ];
+
+    const state = { index: 0, score: 0, hintsUsed: 0, skips: 0, hintStep: 0, reviewAll: false };
+
+    const $ = (sel) => document.querySelector(sel);
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+    function updateSidebar(){
+      $("#statLock").textContent = `${clamp(state.index+1,1,puzzles.length)}/${puzzles.length}`;
+      $("#statScore").textContent = `${state.score}`;
+      $("#statHints").textContent = `${state.hintsUsed}`;
+      $("#statSkips").textContent = `${state.skips}`;
+      $("#finalScore").textContent = `${state.score}`;
+      $("#finalHints").textContent = `${state.hintsUsed}`;
+      $("#finalSkips").textContent = `${state.skips}`;
+    }
+
+    function setStatusPill(kind, text){
+      const pill = $("#statusPill");
+      pill.className = "pill";
+      if(kind === "good") pill.classList.add("good");
+      if(kind === "bad") pill.classList.add("bad");
+      if(kind === "warn") pill.classList.add("warn");
+      pill.textContent = text;
+    }
+
+    function makeChoiceRow(choiceKey, choiceText, name, disabled){
+      const id = `opt_${choiceKey}_${Math.random().toString(16).slice(2)}`;
+      const wrap = document.createElement("label");
+      wrap.className = "choice";
+      wrap.setAttribute("for", id);
+      if(disabled) wrap.style.opacity = "0.7";
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = name;
+      input.id = id;
+      input.value = choiceKey;
+      input.disabled = !!disabled;
+
+      const lab = document.createElement("div");
+      lab.className = "label";
+      lab.textContent = choiceKey;
+
+      const txt = document.createElement("div");
+      txt.className = "text";
+      txt.textContent = choiceText;
+
+      wrap.appendChild(input);
+      wrap.appendChild(lab);
+      wrap.appendChild(txt);
+      wrap.addEventListener("click", ()=>{ if(!disabled) input.checked = true; });
+
+      return wrap;
+    }
+
+    function renderPuzzle(){
+      const area = $("#puzzleArea");
+      const end = $("#endScreen");
+      state.reviewAll = false;
+
+      if(state.index >= puzzles.length){
+        area.innerHTML = "";
+        end.classList.add("show");
+        $("#finalLocks").textContent = `${puzzles.length}/${puzzles.length}`;
+        updateSidebar();
+        setStatusPill("good","ESCAPED");
+        return;
+      } else {
+        end.classList.remove("show");
+      }
+
+      const p = puzzles[state.index];
+      state.hintStep = 0;
+      area.innerHTML = "";
+
+      const lock = document.createElement("div");
+      lock.className = "lock";
+      const left = document.createElement("div");
+      left.className = "left";
+
+      const icon = document.createElement("div");
+      icon.className = "lockIcon";
+      icon.textContent = "🔒";
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.innerHTML = `<div class="name">${p.lockName}</div><div class="hint">${p.doorFlavor}</div>`;
+
+      left.appendChild(icon);
+      left.appendChild(meta);
+
+      lock.appendChild(left);
+      lock.appendChild(Object.assign(document.createElement("div"), { className:"pill", textContent:`LOCK ${p.id} of ${puzzles.length}` }));
+
+      const q = document.createElement("div");
+      q.className = "q";
+      const stem = document.createElement("p");
+      stem.className = "stem";
+      stem.textContent = p.question;
+      q.appendChild(stem);
+
+      const choices = document.createElement("div");
+      choices.className = "choices";
+      const groupName = "choices_" + p.id;
+
+      p.choices.forEach(c=> choices.appendChild(makeChoiceRow(c.key, c.text, groupName, false)));
+      q.appendChild(choices);
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const btnSubmit = Object.assign(document.createElement("button"), { className:"primary", type:"button", textContent:"Submit Answer" });
+      const btnHint = Object.assign(document.createElement("button"), { type:"button", textContent:"HINT", title:"Reveal a hint (−2)" });
+      const btnSkip = Object.assign(document.createElement("button"), { className:"danger", type:"button", textContent:"SKIP", title:"Skip (−5)" });
+      const scorePill = Object.assign(document.createElement("div"), { className:"pill", textContent:"Score: +10 correct / −1 wrong / −2 hint / −5 skip" });
+
+      actions.append(btnSubmit, btnHint, btnSkip, scorePill);
+      q.appendChild(actions);
+
+      const fb = document.createElement("div");
+      fb.className = "feedback";
+      fb.innerHTML = `<p class="headline"></p><p class="body"></p>`;
+      q.appendChild(fb);
+
+      const hb = document.createElement("div");
+      hb.className = "hintBox";
+      hb.innerHTML = `<p class="hTitle">HINTS</p><div class="hbItems"></div>`;
+      q.appendChild(hb);
+
+      function getSelected(){
+        const checked = q.querySelector(`input[name="${groupName}"]:checked`);
+        return checked ? checked.value : null;
+      }
+
+      function showFeedback(kind, headline, body){
+        fb.className = "feedback show " + (kind === "good" ? "good" : "bad");
+        fb.querySelector(".headline").textContent = headline;
+        fb.querySelector(".body").textContent = body;
+      }
+
+      function lockOpen(){
+        icon.textContent = "🔓";
+        icon.classList.add("open");
+        setStatusPill("good","OPEN");
+      }
+      function lockClosed(){
+        setStatusPill("bad","LOCKED");
+      }
+
+      function disableInputs(){
+        q.querySelectorAll(`input[name="${groupName}"]`).forEach(inp=> inp.disabled = true);
+        btnSubmit.disabled = true;
+        btnHint.disabled = true;
+        btnSkip.disabled = true;
+      }
+
+      function nextPuzzle(){
+        state.index += 1;
+        updateSidebar();
+        renderPuzzle();
+      }
+
+      btnSubmit.addEventListener("click", ()=>{
+        const sel = getSelected();
+        if(!sel){
+          setStatusPill("warn","SELECT AN ANSWER");
+          showFeedback("bad","Pick one option first.","Game effect: No change. Select an answer to attempt this lock.");
+          return;
+        }
+        const ok = p.correct.includes(sel);
+        if(ok){
+          state.score += 10;
+          updateSidebar();
+          lockOpen();
+          showFeedback("good","Correct! ✅", `Brief reason: ${p.explanation}\n\nDoor effect: Lock opens.\nClue: ${p.codeClue}`);
+          disableInputs();
+          const btnNext = Object.assign(document.createElement("button"), { className:"good", type:"button", textContent:(state.index===puzzles.length-1) ? "EXIT THE BUILDING" : "OPEN NEXT DOOR" });
+          btnNext.addEventListener("click", nextPuzzle);
+          actions.appendChild(btnNext);
+        } else {
+          state.score -= 1;
+          updateSidebar();
+          lockClosed();
+          showFeedback("bad","Incorrect! ❌", `Brief reason: That choice doesn’t match the scenario.\n\nHelpful reminder: ${p.explanation}\n\nGame effect: −1 point. Try again or use HINT/SKIP.`);
+        }
+      });
+
+      btnHint.addEventListener("click", ()=>{
+        const items = hb.querySelector(".hbItems");
+        hb.classList.add("show");
+        if(state.hintStep >= p.hints.length){
+          showFeedback("bad","No more hints!","You’ve used all hints for this lock. Try eliminating distractors and checking whether behavior increases or decreases.");
+          return;
+        }
+        const item = document.createElement("p");
+        item.className = "hintItem";
+        item.textContent = `Hint ${state.hintStep+1}: ${p.hints[state.hintStep]}`;
+        items.appendChild(item);
+        state.hintStep += 1;
+        state.hintsUsed += 1;
+        state.score -= 2;
+        updateSidebar();
+        lockClosed();
+        showFeedback("bad","Hint used (−2)","Game effect: −2 points. Use the hint to eliminate at least two choices.");
+      });
+
+      btnSkip.addEventListener("click", ()=>{
+        state.skips += 1;
+        state.score -= 5;
+        updateSidebar();
+        lockClosed();
+        showFeedback("bad","Skipped (−5) ⏭️","Game effect: −5 points. You moved on without mastering this concept. Come back in review mode later.");
+        disableInputs();
+        const btnNext = Object.assign(document.createElement("button"), { className:"primary", type:"button", textContent:(state.index===puzzles.length-1) ? "EXIT (WITH A GAP)" : "MOVE ON" });
+        btnNext.addEventListener("click", nextPuzzle);
+        actions.appendChild(btnNext);
+      });
+
+      area.append(lock, q);
+      updateSidebar();
+      lockClosed();
+    }
+
+    function escapeHtml(s){
+      return (s||"").replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+    }
+
+    function renderReviewAll(){
+      const area = $("#puzzleArea");
+      $("#endScreen").classList.remove("show");
+      area.innerHTML = "";
+
+      const top = document.createElement("div");
+      top.className = "q";
+      top.innerHTML = `
+        <p class="stem" style="margin-bottom:10px;">Review Mode: All Locks</p>
+        <p style="margin:0;color:var(--muted);line-height:1.55;font-size:13px;">
+          Browse all questions with the correct answer shown. Review mode does not change score.
+        </p>
+        <div class="actions" style="margin-top:12px;">
+          <button class="primary" id="btnBackToGame" type="button">Back to Game</button>
+        </div>
+      `;
+      area.appendChild(top);
+      top.querySelector("#btnBackToGame").addEventListener("click", renderPuzzle);
+
+      puzzles.forEach(p=>{
+        const block = document.createElement("div");
+        block.className = "q";
+        block.style.marginTop = "12px";
+        block.innerHTML = `
+          <p class="stem" style="margin-bottom:8px;">${p.lockName}</p>
+          <p style="margin:0 0 10px;color:rgba(233,238,252,.92);line-height:1.55;">${escapeHtml(p.question)}</p>
+          <div style="display:grid;gap:8px;">
+            ${p.choices.map(c=>`
+              <div class="choice" style="cursor:default;">
+                <div class="label">${c.key}</div>
+                <div class="text">${escapeHtml(c.text)}</div>
+              </div>
+            `).join("")}
+          </div>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <span class="pill good">Correct: ${p.correct.join(", ")}</span>
+            <span class="pill">Why it matters: ${escapeHtml(p.explanation).slice(0,170)}${p.explanation.length>170?"…":""}</span>
+          </div>
+        `;
+        area.appendChild(block);
+      });
+
+      setStatusPill("warn","REVIEW");
+    }
+
+    // Progress modal helpers
+    function openProgress(){
+      $("#pmLock").textContent = `${clamp(state.index+1,1,puzzles.length)}/${puzzles.length}`;
+      $("#pmScore").textContent = `${state.score}`;
+      $("#pmHints").textContent = `${state.hintsUsed}`;
+      $("#pmSkips").textContent = `${state.skips}`;
+      const current = puzzles[Math.min(state.index, puzzles.length-1)];
+      $("#progressText").innerHTML = `
+        <div class="pill" style="display:inline-block;margin-bottom:10px;">Current: ${escapeHtml(current.lockName)}</div>
+        <div style="color:var(--muted);font-size:13px;line-height:1.55;">
+          Next best move: decide if the scenario is <strong>automatic/emotional</strong> (classical) or <strong>voluntary</strong> (operant),
+          then check whether the behavior <strong>increases</strong> or <strong>decreases</strong>.
+        </div>
+      `;
+      $("#progressModal").classList.add("show");
+    }
+    function closeProgress(){ $("#progressModal").classList.remove("show"); }
+
+    // Global controls
+    $("#btnRestart").addEventListener("click", ()=>{
+      state.index = 0; state.score = 0; state.hintsUsed = 0; state.skips = 0; state.hintStep = 0;
+      renderPuzzle();
+    });
+    $("#btnResetScore").addEventListener("click", ()=>{
+      state.score = 0; state.hintsUsed = 0; state.skips = 0;
+      updateSidebar();
+      setStatusPill("warn","SCORE RESET");
+    });
+
+    // FIXED Progress button: opens modal (no blocked alerts)
+    $("#btnProgress").addEventListener("click", openProgress);
+
+    $("#btnCloseModal").addEventListener("click", closeProgress);
+    $("#progressModal").addEventListener("click", (e)=>{ if(e.target.id === "progressModal") closeProgress(); });
+    window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeProgress(); });
+
+    $("#btnDownload").addEventListener("click", ()=>{
+      const html = "<!doctype html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const stamp = new Date();
+      const pad = (n)=>String(n).padStart(2,"0");
+      a.download = `EAS_Behaviorism_EscapeRoom_${stamp.getFullYear()}-${pad(stamp.getMonth()+1)}-${pad(stamp.getDate())}.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    });
+
+    $("#btnPlayAgain")?.addEventListener("click", ()=>{
+      state.index = 0; state.score = 0; state.hintsUsed = 0; state.skips = 0;
+      renderPuzzle();
+      window.scrollTo({top:0, behavior:"smooth"});
+    });
+    $("#btnReviewAll")?.addEventListener("click", ()=>{
+      renderReviewAll();
+      window.scrollTo({top:0, behavior:"smooth"});
+    });
+
+    // Start
+    renderPuzzle();
+  </script>
+</body>
+</html>
