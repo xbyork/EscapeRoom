@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapping the Identity Iceberg</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #1a1a2e;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      text-align: center;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 15px;
+      color: #555;
+      margin-bottom: 2rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    @media (max-width: 640px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .panel-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .item {
+      background: #fff;
+      border: 1px solid #AFA9EC;
+      border-radius: 8px;
+      padding: 9px 12px;
+      margin-bottom: 7px;
+      font-size: 13px;
+      color: #1a1a2e;
+      cursor: grab;
+      user-select: none;
+      transition: opacity 0.15s, background 0.15s;
+    }
+
+    .item:hover { background: #EEEDFE; border-color: #7F77DD; }
+    .item.dragging { opacity: 0.3; cursor: grabbing; }
+    .item.used { opacity: 0.3; pointer-events: none; }
+
+    .iceberg { border-radius: 12px; overflow: hidden; }
+
+    .above {
+      background: #dbeeff;
+      border: 1.5px solid #85B7EB;
+      border-radius: 12px 12px 0 0;
+      border-bottom: none;
+      padding: 1rem 1.25rem;
+      min-height: 130px;
+    }
+
+    .waterline {
+      height: 8px;
+      background: linear-gradient(90deg, #378ADD 0%, #1D9E75 50%, #378ADD 100%);
+    }
+
+    .below {
+      background: #c7ede0;
+      border: 1.5px solid #5DCAA5;
+      border-radius: 0 0 12px 12px;
+      border-top: none;
+      padding: 1rem 1.25rem;
+      min-height: 160px;
+    }
+
+    .zone-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .above .zone-title { color: #0C447C; }
+    .below .zone-title { color: #085041; }
+
+    .zone-desc { font-size: 11px; margin-bottom: 10px; }
+    .above .zone-desc { color: #185FA5; }
+    .below .zone-desc { color: #0F6E56; }
+
+    .drop-area {
+      min-height: 44px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 4px 0;
+      border-radius: 6px;
+      transition: outline 0.1s;
+    }
+
+    .drop-area.over {
+      outline: 2px dashed #7F77DD;
+      padding: 4px;
+    }
+
+    .placeholder {
+      font-size: 12px;
+      color: #aaa;
+      font-style: italic;
+      align-self: center;
+    }
+
+    .tag {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 12px;
+      color: #1a1a2e;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tag button {
+      background: none;
+      border: none;
+      font-size: 14px;
+      color: #aaa;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .tag button:hover { color: #c0392b; }
+
+    .actions { display: flex; gap: 8px; margin-top: 1rem; }
+
+    .btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #1a1a2e;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn:hover { background: #f5f5f5; }
+
+    .btn-primary {
+      border-color: #7F77DD;
+      color: #3C3489;
+      background: #EEEDFE;
+    }
+
+    .btn-primary:hover { background: #CECBF6; }
+
+    .feedback {
+      margin-top: 1rem;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .feedback.show { display: block; }
+    .feedback.ok { background: #EAF3DE; border: 1px solid #97C459; color: #3B6D11; }
+    .feedback.err { background: #FCEBEB; border: 1px solid #F09595; color: #A32D2D; }
+    .feedback.warn { background: #FAEEDA; border: 1px solid #EF9F27; color: #854F0B; }
+
+    .discuss {
+      margin-top: 1.5rem;
+      background: #FAEEDA;
+      border: 1.5px solid #EF9F27;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      font-size: 13px;
+      color: #633806;
+      line-height: 1.6;
+    }
+
+    .discuss strong { color: #412402; }
+  </style>
+</head>
+<body>
+
+  <h1>Mapping the Identity Iceberg</h1>
+  <p class="subtitle">Drag each cultural element into the correct zone</p>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="panel-label">Items to place</div>
+      <div id="item-list"></div>
+    </div>
+
+    <div>
+      <div class="iceberg">
+        <div class="above" id="zone-above" ondragover="ov(event)" ondragleave="ol(event)" ondrop="dp(event,'above')">
+          <div class="zone-title">Above the water — visible culture</div>
+          <div class="zone-desc">Observable elements easily seen by others</div>
+          <div class="drop-area" id="drop-above">
+            <span class="placeholder" id="ph-above">Drop items here</span>
+          </div>
+        </div>
+        <div class="waterline"></div>
+        <div class="below" id="zone-below" ondragover="ov(event)" ondragleave="ol(event)" ondrop="dp(event,'below')">
+          <div class="zone-title">Below the water — hidden culture</div>
+          <div class="zone-desc">Deep values and beliefs not immediately visible</div>
+          <div class="drop-area" id="drop-below">
+            <span class="placeholder" id="ph-below">Drop items here</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="check()">Check answers</button>
+        <button class="btn" onclick="resetAll()">Reset</button>
+      </div>
+
+      <div class="feedback" id="fb"></div>
+
+      <div class="discuss">
+        <strong>Partner discussion:</strong> Which parts of culture are easiest for teachers to see, and which are the hardest to navigate?
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ITEMS = [
+      { id: 'lang', label: 'Language and dialect',                        answer: 'above' },
+      { id: 'food', label: 'Food and clothing',                           answer: 'above' },
+      { id: 'holi', label: 'Holidays and customs',                        answer: 'above' },
+      { id: 'beli', label: 'Beliefs about learning and intelligence',     answer: 'below' },
+      { id: 'expe', label: 'Expectations for teachers and authority',     answer: 'below' },
+      { id: 'comm', label: 'Communication styles and eye contact',        answer: 'below' },
+      { id: 'gend', label: 'Gender roles and concepts of justice',        answer: 'below' },
+    ];
+
+    let placed = {};
+    let dragging = null;
+
+    function render() {
+      const list = document.getElementById('item-list');
+      list.innerHTML = '';
+      ITEMS.forEach(it => {
+        const d = document.createElement('div');
+        d.className = 'item' + (placed[it.id] ? ' used' : '');
+        d.textContent = it.label;
+        d.draggable = !placed[it.id];
+        d.dataset.id = it.id;
+        d.addEventListener('dragstart', e => {
+          dragging = it.id;
+          setTimeout(() => d.classList.add('dragging'), 0);
+        });
+        d.addEventListener('dragend', () => d.classList.remove('dragging'));
+        list.appendChild(d);
+      });
+      renderZone('above');
+      renderZone('below');
+    }
+
+    function renderZone(z) {
+      const area = document.getElementById('drop-' + z);
+      const ph   = document.getElementById('ph-' + z);
+      const items = ITEMS.filter(i => placed[i.id] === z);
+      ph.style.display = items.length ? 'none' : '';
+      area.querySelectorAll('.tag').forEach(el => el.remove());
+      items.forEach(it => {
+        const t = document.createElement('div');
+        t.className = 'tag';
+        t.innerHTML = it.label + '<button onclick="remove(\'' + it.id + '\')">×</button>';
+        area.appendChild(t);
+      });
+    }
+
+    function ov(e) {
+      e.preventDefault();
+      e.currentTarget.querySelector('.drop-area').classList.add('over');
+    }
+
+    function ol(e) {
+      e.currentTarget.querySelector('.drop-area').classList.remove('over');
+    }
+
+    function dp(e, z) {
+      e.preventDefault();
+      e.currentTarget.querySelector('.drop-area').classList.remove('over');
+      if (!dragging) return;
+      placed[dragging] = z;
+      render();
+      document.getElementById('fb').classList.remove('show');
+      dragging = null;
+    }
+
+    function remove(id) {
+      delete placed[id];
+      render();
+      document.getElementById('fb').classList.remove('show');
+    }
+
+    function check() {
+      const done    = ITEMS.filter(i => placed[i.id]);
+      if (!done.length) { show('warn', 'Place at least one item to check your answers.'); return; }
+      const correct = done.filter(i => placed[i.id] === i.answer);
+      const wrong   = done.filter(i => placed[i.id] !== i.answer);
+      const all     = done.length === ITEMS.length;
+
+      if (wrong.length === 0 && all) {
+        show('ok', '✓ Excellent! All 7 items placed correctly. Visible culture is the "tip" everyone can observe, while hidden culture shapes how students think, behave, and relate to authority — often invisible to teachers.');
+      } else if (wrong.length === 0) {
+        show('warn', correct.length + '/' + ITEMS.length + ' placed so far — all correct! Keep going with the remaining items.');
+      } else {
+        show('err', correct.length + '/' + done.length + ' correct so far. Review where you placed: ' + wrong.map(i => i.label).join(', ') + '.');
+      }
+    }
+
+    function show(type, msg) {
+      const el = document.getElementById('fb');
+      el.className = 'feedback show ' + type;
+      el.textContent = msg;
+    }
+
+    function resetAll() {
+      placed = {};
+      render();
+      document.getElementById('fb').classList.remove('show');
+    }
+
+    render();
+  </script>
+</body>
+</html>
